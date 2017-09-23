@@ -6,25 +6,25 @@ import (
 )
 
 type Sphere struct {
-	Center   *Point
+	Center   *Vector
 	Radius   float64
 	Material Material
 }
 
 func NewSphere(x, y, z, r float64, material Material) *Sphere {
 	return &Sphere{
-		NewPoint(x, y, z),
+		NewVector(x, y, z),
 		r,
 		material,
 	}
 }
 
 func (s *Sphere) Hit(r *Ray, tmin, tmax float64) (bool, *HitRecord) {
-	oc := SubtractVectors(r.Origin, s.Center)
+	oc := r.Origin.Copy().Subtract(s.Center)
 	var a, b, c, d float64
-	a = VectorDotProduct(r.Direction, r.Direction)
-	b = 2.0 * VectorDotProduct(oc, r.Direction)
-	c = VectorDotProduct(oc, oc) - s.Radius*s.Radius
+	a = r.Direction.Dot(r.Direction)
+	b = 2.0 * oc.Dot(r.Direction)
+	c = oc.Dot(oc) - s.Radius*s.Radius
 	d = b*b - 4*a*c
 
 	record := HitRecord{}
@@ -35,7 +35,7 @@ func (s *Sphere) Hit(r *Ray, tmin, tmax float64) (bool, *HitRecord) {
 		if temp > tmin && temp < tmax {
 			record.T = temp
 			record.P = r.PointAtParameter(temp)
-			record.N = UnitVector(SubtractVectors(record.P, s.Center))
+			record.N = record.P.Copy().Subtract(s.Center).Normalize()
 			record.Material = s.Material
 			return true, &record
 		}
@@ -43,7 +43,7 @@ func (s *Sphere) Hit(r *Ray, tmin, tmax float64) (bool, *HitRecord) {
 		if temp > tmin && temp < tmax {
 			record.T = temp
 			record.P = r.PointAtParameter(temp)
-			record.N = UnitVector(SubtractVectors(record.P, s.Center))
+			record.N = record.P.Copy().Subtract(s.Center).Normalize()
 			record.Material = s.Material
 			return true, &record
 		}
@@ -51,12 +51,13 @@ func (s *Sphere) Hit(r *Ray, tmin, tmax float64) (bool, *HitRecord) {
 	return false, nil
 }
 
-func RandomPointInUnitSphere() *Point {
-	var p *Point
+func RandomPointInUnitSphere() *Vector {
+	var p, offset *Vector
+	offset = NewVector(1, 1, 1)
 	for {
-		x, y, z := 2*rand.Float64()-1, 2*rand.Float64()-1, 2*rand.Float64()-1
-		p = NewPoint(x, y, z)
-		if VectorDotProduct(p, p) < 1.0 {
+		p = NewVector(rand.Float64(), rand.Float64(), rand.Float64()).Scale(2).Subtract(offset)
+
+		if p.Dot(p) < 1.0 {
 			break
 		}
 	}

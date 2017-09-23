@@ -2,7 +2,7 @@ package models
 
 import "fmt"
 
-type VectorInput [3]float64
+type VectorInput []float64
 type ObjectType int
 
 const (
@@ -64,9 +64,9 @@ type World struct {
 }
 
 func (w World) GetCamera() *Camera {
-	lookFrom := NewPointByArray(w.Camera.LookFrom)
-	lookAt := NewPointByArray(w.Camera.LookAt)
-	vup := NewVector3DFromArray(w.Camera.UpVector)
+	lookFrom := NewVectorFromSlice(w.Camera.LookFrom)
+	lookAt := NewVectorFromSlice(w.Camera.LookAt)
+	vup := NewVectorFromSlice(w.Camera.UpVector)
 	return NewCamera(lookFrom, lookAt, vup, w.Camera.FieldOfView, w.Camera.AspectRatio, w.Camera.Aperture, w.Camera.Focus)
 }
 
@@ -83,7 +83,7 @@ func (w World) GetHitableList() *HitableList {
 func (s SphereInput) getSphere() *Sphere {
 	return &Sphere{
 		Radius:   s.Radius,
-		Center:   NewPointByArray(s.Center),
+		Center:   NewVectorFromSlice(s.Center),
 		Material: s.Surface.getMaterial(),
 	}
 }
@@ -94,11 +94,11 @@ func (s *SurfaceInput) getMaterial() Material {
 
 	switch s.Type {
 	case LambertianMaterial:
-		material = NewLambertian(NewVector3DFromArray(s.Albedo))
+		material = NewLambertian(NewVectorFromSlice(s.Albedo))
 	case MetalMaterial:
-		material = NewMetal(NewVector3DFromArray(s.Albedo), s.Fuzz)
+		material = NewMetal(NewVectorFromSlice(s.Albedo), s.Fuzz)
 	case DielectricMaterial:
-		material = NewDielectric(NewVector3DFromArray(s.Albedo), s.RefIndex)
+		material = NewDielectric(NewVectorFromSlice(s.Albedo), s.RefIndex)
 	default:
 		panic(fmt.Sprintf("Got invalid surface type: %s", s.Type))
 	}

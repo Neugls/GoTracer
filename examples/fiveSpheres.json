@@ -1,15 +1,15 @@
 {
   "Settings": {
-    "ShowProgress": false,
+    "ShowProgress": true,
     "RenderRoutines": -1,
     "RenderDepth": 10
   },
   "Image": {
     "OutputFile": "./examples/renderedFiveSpheres.png",
-    "Height": 400,
-    "Width": 800,
-    "Samples": 100,
-    "Patch": [0, 400, 0, 800]
+    "Height": 200,
+    "Width": 400,
+    "Samples": 10,
+    "Patch": [0, 200, 0, 400]
   },
   "Camera": {
     "LookFrom": [-2, 1, 0.5],

@@ -6,47 +6,78 @@ import (
 )
 
 type Camera struct {
-	LowerLeftCorner, Origin *Point
-	Horizontal, Vertical    *Vector3D
-	LensRadius              float64
-	U, V, W                 *Vector3D
+	LowerLeftCorner *Vector
+	Origin          *Vector
+	Horizontal      *Vector
+	Vertical        *Vector
+	LensRadius      float64
+	U, V, W         *Vector
 }
 
 func (c *Camera) RayAt(u, v float64) *Ray {
 
-	rd := MultiplyScalar(RandomPointInUnitDisk(), c.LensRadius)
-	offset := AddVectors(MultiplyScalar(c.U, rd.X()), MultiplyScalar(c.V, rd.Y()))
-	origin := AddVectors(c.Origin, offset)
+	var randomPoint, offset, yOffset, origin, rayDirection, tempHorizontal, tempVertical *Vector
 
-	horizontalDir := AddVectors(c.LowerLeftCorner, MultiplyScalar(c.Horizontal, u))
-	compositeDir := AddVectors(horizontalDir, MultiplyScalar(c.Vertical, v))
-	compositeDir = SubtractVectors(compositeDir, origin)
+	randomPoint = RandomPointInUnitDisk()
+	randomPoint.Scale(c.LensRadius)
+
+	offset = c.U.Copy()
+	yOffset = c.V.Copy()
+
+	offset.Scale(randomPoint.X())
+	yOffset.Scale(randomPoint.Y())
+
+	offset.Add(yOffset)
+
+	origin = c.Origin.Copy()
+	origin.Add(offset)
+
+	rayDirection = c.LowerLeftCorner.Copy()
+	tempHorizontal = c.Horizontal.Copy()
+	tempVertical = c.Vertical.Copy()
+
+	tempHorizontal.Scale(u)
+	tempVertical.Scale(v)
+
+	rayDirection.Add(tempHorizontal).Add(tempVertical)
+	rayDirection.Subtract(origin)
+
 	return &Ray{
-		NewPointByVector(origin),
-		compositeDir,
+		origin,
+		rayDirection,
 	}
 }
 
-func NewCamera(lookFrom, lookAt *Point, vup *Vector3D, vfov, aspect, aperture, focus float64) *Camera {
+func NewCamera(lookFrom, lookAt *Vector, vup *Vector, vfov, aspect, aperture, focus float64) *Camera {
 	theta := vfov * math.Pi / 180
 	half_height := math.Tan(theta / 2)
 
 	//half_height *= wVector.Length()
 	half_width := aspect * half_height
 
-	w := UnitVector(SubtractVectors(lookFrom, lookAt))
-	u := UnitVector(VectorCrossProduct(vup, w))
-	v := VectorCrossProduct(w, u)
+	var u, v, w, llc *Vector
 
-	//llc := NewPoint(-half_width, -half_height, -1.0)
-	llc := SubtractVectors(lookFrom, MultiplyScalar(u, half_width*focus))
-	llc = SubtractVectors(llc, MultiplyScalar(v, half_height*focus))
-	llc = SubtractVectors(llc, MultiplyScalar(w, focus))
+	w = lookFrom.Copy()
+	w.Subtract(lookAt).Normalize()
+
+	u = vup
+	u.Cross(w).Normalize()
+
+	v = w.Copy()
+	v.Cross(u)
+
+	llc = lookFrom.Copy().Subtract(
+		u.Copy().Scale(half_width * focus),
+	).Subtract(
+		v.Copy().Scale(half_height * focus),
+	).Subtract(
+		w.Copy().Scale(focus),
+	)
 
 	return &Camera{
-		LowerLeftCorner: NewPointByVector(llc),
-		Horizontal:      MultiplyScalar(u, 2*half_width*focus),
-		Vertical:        MultiplyScalar(v, 2*half_height*focus),
+		LowerLeftCorner: llc,
+		Horizontal:      u.Copy().Scale(2 * half_width * focus),
+		Vertical:        v.Copy().Scale(2 * half_height * focus),
 		Origin:          lookFrom,
 		LensRadius:      aperture / 2,
 		U:               u,
@@ -55,12 +86,14 @@ func NewCamera(lookFrom, lookAt *Point, vup *Vector3D, vfov, aspect, aperture, f
 	}
 }
 
-func RandomPointInUnitDisk() *Point {
-	var p *Point
+func RandomPointInUnitDisk() *Vector {
+	var p, x *Vector
 	for {
-		x, y, z := 2*rand.Float64()-1, 2*rand.Float64()-1, 0.0
-		p = NewPoint(x, y, z)
-		if VectorDotProduct(p, p) < 1.0 {
+		p = NewVector(rand.Float64(), rand.Float64(), 0)
+		p.Scale(2)
+		x = NewVector(1, 1, 0)
+		p.Subtract(x)
+		if p.Dot(p) < 1.0 {
 			break
 		}
 	}

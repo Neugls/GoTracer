@@ -6,16 +6,16 @@
   },
   "Image": {
     "OutputFile": "./out/renderedImage.png",
-    "Width": 400,
-    "Height": 200,
+    "Width": 200,
+    "Height": 100,
     "Samples": 10,
-    "Patch": [0, 200, 0, 400]
+    "Patch": [0, 100, 0, 200]
   },
   "Camera": {
-    "LookFrom": [-2, 1, 0.5],
+    "LookFrom": [0, 0, 1],
     "LookAt": [0, 0, -1],
     "UpVector": [0, 1, 0],
-    "FieldOfView": 45,
+    "FieldOfView": 90,
     "AspectRatio": 2,
     "Focus": 2.69,
     "Aperture": 0.04
